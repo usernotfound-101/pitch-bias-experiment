@@ -1,5 +1,8 @@
-import streamlit as st
+import itertools
 import random
+from urllib.parse import urlencode
+
+import streamlit as st
 import streamlit.components.v1 as components
 
 # --- Page Configuration ---
@@ -10,24 +13,54 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# --- Video & Survey Config ---
-# Replace these with your actual YouTube embed URLs or direct MP4 links
-VIDEO_MALE = "https://www.youtube.com/watch?v=VIDEO_ID_MALE"
-VIDEO_FEMALE = "https://www.youtube.com/watch?v=VIDEO_ID_FEMALE"
+# --- Design: 3 pitches x 2 founder genders x 3 founder ages = 18 videos ---
+PITCHES = [1, 2, 3]
+GENDERS = ["male", "female"]
+AGES = [22, 28, 35]
+
+# One URL per condition, keyed by (pitch, gender, age).
+# Replace each placeholder with the real YouTube link or direct MP4 link.
+VIDEOS = {
+    (1, "male", 22): "https://www.youtube.com/watch?v=P1_MALE_22",
+    (1, "male", 28): "https://www.youtube.com/watch?v=P1_MALE_28",
+    (1, "male", 35): "https://www.youtube.com/watch?v=P1_MALE_35",
+    (1, "female", 22): "https://www.youtube.com/watch?v=P1_FEMALE_22",
+    (1, "female", 28): "https://www.youtube.com/watch?v=P1_FEMALE_28",
+    (1, "female", 35): "https://www.youtube.com/watch?v=P1_FEMALE_35",
+    (2, "male", 22): "https://www.youtube.com/watch?v=P2_MALE_22",
+    (2, "male", 28): "https://www.youtube.com/watch?v=P2_MALE_28",
+    (2, "male", 35): "https://www.youtube.com/watch?v=P2_MALE_35",
+    (2, "female", 22): "https://www.youtube.com/watch?v=P2_FEMALE_22",
+    (2, "female", 28): "https://www.youtube.com/watch?v=P2_FEMALE_28",
+    (2, "female", 35): "https://www.youtube.com/watch?v=P2_FEMALE_35",
+    (3, "male", 22): "https://www.youtube.com/watch?v=P3_MALE_22",
+    (3, "male", 28): "https://www.youtube.com/watch?v=P3_MALE_28",
+    (3, "male", 35): "https://www.youtube.com/watch?v=P3_MALE_35",
+    (3, "female", 22): "https://www.youtube.com/watch?v=P3_FEMALE_22",
+    (3, "female", 28): "https://www.youtube.com/watch?v=P3_FEMALE_28",
+    (3, "female", 35): "https://www.youtube.com/watch?v=P3_FEMALE_35",
+}
+
+# Fail early if a condition is missing or extra, so no visitor gets a broken page.
+CONDITIONS = list(itertools.product(PITCHES, GENDERS, AGES))
+assert set(VIDEOS) == set(CONDITIONS), "VIDEOS must have exactly one URL per (pitch, gender, age)"
 
 # Replace with your survey link (e.g., Tally, Google Forms, Qualtrics)
 BASE_SURVEY_URL = "https://tally.so/r/YOUR_FORM_ID"
 
 # --- Session State Allocation ---
-# Lock the variant in session state so a page rerun does not flip the video
-if "variant" not in st.session_state:
-    st.session_state.variant = random.choice(["male", "female"])
+# Draw one of the 18 conditions uniformly at random, and lock it in session
+# state so a page rerun does not switch the video.
+if "condition" not in st.session_state:
+    st.session_state.condition = random.choice(CONDITIONS)
 
-variant = st.session_state.variant
-active_video = VIDEO_MALE if variant == "male" else VIDEO_FEMALE
+pitch, gender, age = st.session_state.condition
+active_video = VIDEOS[(pitch, gender, age)]
+video_id = f"p{pitch}_{gender[0]}_{age}"  # e.g. p2_f_28
 
-# Append the assigned group to the survey link as a URL parameter
-survey_link_with_param = f"{BASE_SURVEY_URL}?group={variant}"
+# Pass the assigned condition to the survey as URL parameters
+survey_params = urlencode({"video": video_id, "pitch": pitch, "gender": gender, "age": age})
+survey_link_with_param = f"{BASE_SURVEY_URL}?{survey_params}"
 
 # --- Custom Styling ---
 st.markdown(
