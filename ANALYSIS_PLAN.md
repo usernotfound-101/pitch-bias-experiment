@@ -1,44 +1,49 @@
 # Participant experiment: analysis plan (side study, T070)
 
-Draft by ayush-main for Ayush to check. Written **before any data come in**; changes after data arrive must be listed under "Deviations" with a date.
+Written **before any data come in**; changes after data arrive go under "Deviations" with a date.
 
 ## Design
-- Online, between-subjects. Each participant sees **one** of 18 videos: 3 pitches x founder gender (male / female) x founder age (22 / 28 / 35). Assignment is uniform random per session (experiment/app.py) and passed to the form as URL parameters `video`, `pitch`, `gender`, `age`, `consent`.
-- Within each pitch, the 6 videos must have the same script, length and delivery, so that only gender and age differ. TODO (Ayush): describe how the videos were made (actors, voice, AI-generated?) and how the scripts were kept identical.
-- Consent screen before the video (18+, voluntary, anonymous). No names, emails or IDs collected.
+- Online. Each participant sees **three** pitch videos, one for each business (A, B, C), and is assigned at random to one of 6 groups: 3 orders x founder voice (F or M, the same for all three pitches).
+- The orders form a Latin square: across O1-O3 each business appears once at each stated founder age (22, 28, 35). So founder age varies **within** participants and voice **between** participants.
 
-## Outcomes
-TODO (Ayush): list the exact form questions. Suggested, in order of priority:
-1. **Primary: investment allocation**, e.g. "Out of ₹1,000 (hypothetical), how much would you invest in this business?" (0-1000).
-2. Secondary: likelihood to invest (1-7), perceived competence (1-7), perceived growth potential (1-7), perceived risk (1-7).
-3. Manipulation checks: "What was the founder's gender?" and "Roughly how old was the founder?" (Planned exclusion: wrong gender answer.)
-4. Attention check: one instructed item.
-5. Participant background (optional, coarse): own gender, age band, any investing experience.
+| Order | Pitch 1 | Pitch 2 | Pitch 3 |
+| --- | --- | --- | --- |
+| O1 | A, 22 | B, 28 | C, 35 |
+| O2 | B, 35 | C, 22 | A, 28 |
+| O3 | C, 28 | A, 35 | B, 22 |
+
+- Within a business, the six videos share one script; only voice and stated age differ. Video lengths differ somewhat (e.g. 53-80 s for the recorded ones), so `watch_seconds` and video length are recorded.
+- Consent screen first (18+, voluntary, anonymous). Optional bonus-draw contact is stored separately and cannot be linked to answers.
+
+## Measures (all taps, about 30 s per pitch)
+1. **Primary: investment**, ₹0-1,000 in steps of 100 ("How much of ₹1,000 would you invest in this founder?").
+2. **Question focus**: "Which question would you most want to ask this founder?", 4 options per business (2 promotion, 2 prevention, following the project codebook), shown in random order. Outcome: picked a prevention question (0/1).
+3. Attention / manipulation check (once, at the end): "The founders' voices were all female / all male / some of each / not sure".
+4. Participant: age band, gender, ever invested (yes/no).
 
 ## Planned models
-- Primary: `allocation ~ female + C(age) + C(pitch)` (OLS, robust SEs). Effect of interest: coefficient on `female`.
-- Moderation (H4 analogue): `allocation ~ female * C(age) + C(pitch)`; report the interaction as exploratory unless n is large (see below).
-- Secondary outcomes: same model per outcome; Holm correction across secondary outcomes.
-- Participant-gender moderation (H5 analogue, exploratory): add `female * participant_female`.
-- Language: associations within a randomised design can be described as effects of the assigned video, but keep claims to this sample (students / online convenience sample).
+Data: one row per participant x pitch (3 rows each). Standard errors clustered by participant.
+- Investment: `invest ~ female_voice * C(founder_age) + C(business) + C(position)` (OLS). Main term: `female_voice`.
+- Question focus: same right-hand side, logit on `picked_prevention`; report average marginal effects. This links the side study to the main study's H1 (more prevention questions for female founders).
+- Exploratory: `female_voice x participant_gender`; `female_voice x invested_before`.
+- Associations from a randomised assignment may be described as differences between assigned conditions, limited to this convenience sample.
 
 ## Exclusions (fixed now)
-1. Did not consent (no data recorded anyway).
-2. Failed the attention check.
-3. Wrong answer to the founder-gender manipulation check.
-4. Duplicate submissions (same form session) beyond the first.
-Report results with and without exclusions 2-3.
+1. Voice check answered wrong ("all male" for a female-voice group or the reverse). "Not sure" is kept.
+2. Any pitch with `watch_seconds` below 90% of the video length is impossible by design (the app blocks it), so no time-based exclusion.
+3. Duplicate participant ids beyond the first submission.
+Report results with and without exclusion 1.
 
 ## Minimum responses and the report decision
-Power for the gender main effect (two groups, alpha 0.05, power 0.80; statsmodels TTestIndPower):
-- medium effect d = 0.5: 64 per gender group, about 128 usable responses in total;
-- small-to-medium d = 0.3: 175 per group, about 350 in total.
-
-Proposal: include the experiment in the report as a short section if there are at least 128 usable responses; below that, report it as a pilot in an appendix (descriptives only, no inference on the interaction). Gender x age interaction tests need far more and stay exploratory either way. TODO (Ayush + Abhiraj): confirm this threshold and the data-collection end date.
+Voice is between participants. Power for the voice main effect (two groups, alpha 0.05, power 0.80; statsmodels TTestIndPower, treating each participant's mean investment as one observation):
+- medium effect d = 0.5: 64 participants per voice, about 128 in total;
+- small-to-medium d = 0.3: 175 per voice, about 350 in total.
+Proposal: a short report section if there are at least 128 usable participants; below that, an appendix pilot (descriptives only). Age effects (within participants) and interactions stay exploratory. TODO (Ayush + Abhiraj): confirm the threshold and the end date.
 
 ## Ethics and data handling
-- TODO (Ayush): ask the course instructor / IIIT whether an online anonymous study needs ethics approval; record the answer and date in board/tasks/T070_participant_experiment.md.
-- Raw responses stay out of git (export to a private folder). Only aggregated, anonymous tables may be committed.
+- TODO (Ayush): ask the course instructor / IIIT whether this online anonymous study needs ethics approval; record the answer in board/tasks/T070_participant_experiment.md.
+- Raw responses stay in the Google Sheet and out of git. Only aggregated, anonymous tables may be committed.
+- The bonus draw is a random draw among those who leave a contact; it cannot depend on answers, because contacts are not linked to answers.
 
 ## Deviations
-(none yet)
+- 2026-11-07: design changed from "1 of 18 videos per participant" to the 6-group, 3-pitch design above (Ayush). Typed questions, timed/untimed groups, BIS/BAS scale and open-text items dropped to keep each pitch under a minute.

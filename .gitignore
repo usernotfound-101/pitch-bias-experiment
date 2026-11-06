@@ -2,3 +2,6 @@
 responses/
 *.csv
 *.xlsx
+
+# Streamlit secrets (Google Sheet URL) never go in git
+.streamlit/secrets.toml
