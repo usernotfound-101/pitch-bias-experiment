@@ -20,7 +20,7 @@ Written **before any data come in**; changes after data arrive go under "Deviati
 2. **Question focus**: "Which question would you most want to ask this founder?", 4 options per business (2 promotion, 2 prevention, following the project codebook), shown in random order. Outcome: picked a prevention question (0/1).
 3. Attention / manipulation check (once, at the end): "The founders' voices were all female / all male / some of each / not sure".
 4. Participant: age band, gender, ever invested (yes/no).
-5. **Conjunction fallacy** (lecture "Conjunction Fallacy"), 2 items about the last pitch seen, each a single event vs that event plus another (options shuffled): business still running in 3 years (+ expanded to another state); founder steps back within 5 years (+ to focus on family). Choosing the conjunction = fallacy. The founder item carries a gender stereotype, so its fallacy rate may differ by founder voice.
+5. **Conjunction fallacy** (lecture "Conjunction Fallacy"), 2 items about the last pitch seen, each with three options in shuffled order: a single event, that event plus another, and the opposite event. Business: still running in 3 years / still running and expanded to another state / no longer running. Founder: steps back within 5 years / steps back to focus on family / still running the business. Choosing the conjunction = fallacy; the third option gives a non-fallacy alternative to the single event. Fallacy rate = share choosing the conjunction among all answers (and, as a check, among those not choosing the opposite event). The founder item carries a gender stereotype, so its fallacy rate may differ by founder voice.
 
 ## Planned models
 Data: one row per participant x pitch (3 rows each). Standard errors clustered by participant.
@@ -50,3 +50,4 @@ Proposal: a short report section if there are at least 128 usable participants; 
 ## Deviations
 - 2026-11-07: design changed from "1 of 18 videos per participant" to the 6-group, 3-pitch design above (Ayush). Typed questions, timed/untimed groups, BIS/BAS scale and open-text items dropped to keep each pitch under a minute.
 - 2026-11-07: added 2 closing conjunction-fallacy items, before data collection (Ayush); 2 bias blind spot items were added and then removed the same day, before any data.
+- 2026-11-07: a third option (the opposite event) added to each conjunction item, before any data (Ayush).

@@ -88,15 +88,18 @@ QUESTION_OPTIONS = {
 INVEST_CHOICES = list(range(0, 1001, 100))  # rupees, tapped not typed
 
 # Extra items (lecture "Conjunction Fallacy"), asked once at the end.
-# Conjunction fallacy: each item pairs a single event with that event AND another one. Choosing the
-# conjunction is the fallacy (it can never be more likely). Option order is shuffled per participant.
+# Conjunction fallacy: each item offers a single event, that event AND another one, and the opposite
+# of the single event. Choosing the conjunction is the fallacy (it can never be more likely than the
+# single event). Option order is shuffled per participant.
 CF_ITEMS = {
     "cf_business": ("Think about the last business you saw. Which is more likely?",
                     "It is still running in 3 years.",
-                    "It is still running in 3 years and has expanded to another state."),
+                    "It is still running in 3 years and has expanded to another state.",
+                    "It is no longer running in 3 years."),
     "cf_founder": ("Think about the founder of the last pitch. Which is more likely?",
                    "Within 5 years, the founder steps back from running the business.",
-                   "Within 5 years, the founder steps back from running the business to focus on family."),
+                   "Within 5 years, the founder steps back from running the business to focus on family.",
+                   "Within 5 years, the founder is still running the business."),
 }
 MIN_WATCH_SHARE = 0.9  # Continue works once this share of the video length has passed
 CONTACT = "ayush.moharana@students.iiit.ac.in"
@@ -294,10 +297,10 @@ elif ss.step == "about":
     voice_check = st.radio("In the three pitches, the founders' voices were…",
                            ["All female", "All male", "Some female, some male", "Not sure"], index=None)
     if "cf_order" not in ss:  # shuffle option order once per participant
-        ss.cf_order = {k: random.sample(["single", "conjunction"], k=2) for k in CF_ITEMS}
+        ss.cf_order = {k: random.sample(["single", "conjunction", "other"], k=3) for k in CF_ITEMS}
     cf = {}
-    for k, (q, single, conj) in CF_ITEMS.items():
-        text = {"single": single, "conjunction": conj}
+    for k, (q, single, conj, other) in CF_ITEMS.items():
+        text = {"single": single, "conjunction": conj, "other": other}
         cf[k] = st.radio(q, ss.cf_order[k], index=None, format_func=lambda o, t=text: t[o], key=k)
     age_band = st.radio("Your age", ["18-20", "21-24", "25-34", "35 or older"], index=None, horizontal=True)
     gender = st.radio("Your gender", ["Female", "Male", "Other", "Prefer not to say"], index=None, horizontal=True)
@@ -314,10 +317,10 @@ elif ss.step == "about":
                 "voice": ss.voice,
                 "cell_source": ss.cell_source,
                 "voice_check": voice_check,
-                "cf_business": cf["cf_business"],  # 'conjunction' = fallacy
+                "cf_business": cf["cf_business"],  # single / conjunction / other; 'conjunction' = fallacy
                 "cf_founder": cf["cf_founder"],
-                "cf_business_first_option": ss.cf_order["cf_business"][0],
-                "cf_founder_first_option": ss.cf_order["cf_founder"][0],
+                "cf_business_order": "|".join(ss.cf_order["cf_business"]),  # options as shown, top to bottom
+                "cf_founder_order": "|".join(ss.cf_order["cf_founder"]),
                 "cf_last_business": ss.answers[2]["business"],
                 "participant_age_band": age_band,
                 "participant_gender": gender,
