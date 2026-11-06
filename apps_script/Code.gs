@@ -3,7 +3,7 @@
  *
  * Paste this into Extensions > Apps Script of an empty Google Sheet, then
  * Deploy > New deployment > Web app, Execute as: Me, Who has access: Anyone.
- * Copy the web app URL into CONFIG.SHEET_URL in index.html.
+ * Copy the web app URL into the Streamlit app's secrets as SHEET_URL (see experiment/README.md).
  *
  * Tabs it creates:
  *   responses    one row per participant per pitch (3 rows per participant)
@@ -11,8 +11,16 @@
  *   bonus        bonus-draw contacts, with no participant id (cannot be linked)
  */
 
+// Only needed if this script was NOT opened from the Sheet (Extensions > Apps Script):
+// paste the Sheet's id here (the long part of its URL between /d/ and /edit).
+var SHEET_ID = '';
+
+function book_() {
+  return SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(SHEET_ID);
+}
+
 function sheet_(name, header) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = book_();
   var sh = ss.getSheetByName(name) || ss.insertSheet(name);
   if (header && sh.getLastRow() === 0) sh.appendRow(header);
   return sh;
