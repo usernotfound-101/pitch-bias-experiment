@@ -1,0 +1,4 @@
+# Participant responses never go in git (CLAUDE.md: side study)
+responses/
+*.csv
+*.xlsx

@@ -59,7 +59,7 @@ active_video = VIDEOS[(pitch, gender, age)]
 video_id = f"p{pitch}_{gender[0]}_{age}"  # e.g. p2_f_28
 
 # Pass the assigned condition to the survey as URL parameters
-survey_params = urlencode({"video": video_id, "pitch": pitch, "gender": gender, "age": age})
+survey_params = urlencode({"consent": "yes", "video": video_id, "pitch": pitch, "gender": gender, "age": age})
 survey_link_with_param = f"{BASE_SURVEY_URL}?{survey_params}"
 
 # --- Custom Styling ---
@@ -88,6 +88,44 @@ st.markdown(
 
 # --- App UI ---
 st.title("Startup Pitch Evaluation Study")
+
+# Contact shown on the consent screen. Replace with the team's study email.
+CONTACT = "STUDY_CONTACT_EMAIL"
+
+# --- Consent screen: nothing else is shown until the visitor agrees ---
+if "consent" not in st.session_state:
+    st.session_state.consent = None  # None = not answered, True = agreed, False = declined
+
+if st.session_state.consent is not True:
+    if st.session_state.consent is False:
+        st.info("Thank you for your time. You did not take part, and nothing was recorded. You can close this page.")
+        st.stop()
+
+    st.markdown(
+        f"""
+        <div class="instruction-box">
+            <strong>About this study</strong><br>
+            This is a student research project for a Neuroeconomics course at IIIT Hyderabad.
+            You will watch one short startup pitch (about 60 seconds) and then answer a few questions
+            about the business in a separate form. It takes about 5 minutes.<br><br>
+            <strong>Your rights</strong><br>
+            • Taking part is voluntary. You can stop at any time by closing the page, with no consequence.<br>
+            • Your answers are anonymous: we do not ask for your name, email or any other identifying details.<br>
+            • Responses are used only for this course project and reported only as group totals.<br>
+            • You must be 18 or older to take part.<br><br>
+            Questions? Contact: {CONTACT}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    agree_col, decline_col = st.columns(2)
+    if agree_col.button("I am 18+ and agree to take part", type="primary", use_container_width=True):
+        st.session_state.consent = True
+        st.rerun()
+    if decline_col.button("I do not want to take part", use_container_width=True):
+        st.session_state.consent = False
+        st.rerun()
+    st.stop()
 
 st.markdown(
     """
