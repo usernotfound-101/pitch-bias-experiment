@@ -86,6 +86,21 @@ QUESTION_OPTIONS = {
 }
 
 INVEST_CHOICES = list(range(0, 1001, 100))  # rupees, tapped not typed
+
+# Extra items (lectures "Conjunction Fallacy" and "Perceptions and Bias in DM"), asked once at the end.
+# Conjunction fallacy: each item pairs a single event with that event AND another one. Choosing the
+# conjunction is the fallacy (it can never be more likely). Option order is shuffled per participant.
+CF_ITEMS = {
+    "cf_business": ("Think about the last business you saw. Which is more likely?",
+                    "It is still running in 3 years.",
+                    "It is still running in 3 years and has expanded to another state."),
+    "cf_founder": ("Think about the founder of the last pitch. Which is more likely?",
+                   "Within 5 years, the founder steps back from running the business.",
+                   "Within 5 years, the founder steps back from running the business to focus on family."),
+}
+# Bias blind spot: rate the voice's influence on yourself and on other participants (1-5).
+INFLUENCE_SCALE = [1, 2, 3, 4, 5]
+INFLUENCE_LABELS = {1: "1 Not at all", 2: "2", 3: "3", 4: "4", 5: "5 A lot"}
 MIN_WATCH_SHARE = 0.9  # Continue works once this share of the video length has passed
 CONTACT = "STUDY_CONTACT_EMAIL"  # replace with the team's study email
 
@@ -281,12 +296,22 @@ elif ss.step == "about":
     st.subheader("Last few questions")
     voice_check = st.radio("In the three pitches, the founders' voices were…",
                            ["All female", "All male", "Some female, some male", "Not sure"], index=None)
+    if "cf_order" not in ss:  # shuffle option order once per participant
+        ss.cf_order = {k: random.sample(["single", "conjunction"], k=2) for k in CF_ITEMS}
+    cf = {}
+    for k, (q, single, conj) in CF_ITEMS.items():
+        text = {"single": single, "conjunction": conj}
+        cf[k] = st.radio(q, ss.cf_order[k], index=None, format_func=lambda o, t=text: t[o], key=k)
+    bbs_self = st.radio("How much did the founders' voices influence YOUR investment decisions?",
+                        INFLUENCE_SCALE, index=None, horizontal=True, format_func=INFLUENCE_LABELS.get)
+    bbs_others = st.radio("How much do you think the founders' voices influence the decisions of OTHER participants?",
+                          INFLUENCE_SCALE, index=None, horizontal=True, format_func=INFLUENCE_LABELS.get)
     age_band = st.radio("Your age", ["18-20", "21-24", "25-34", "35 or older"], index=None, horizontal=True)
     gender = st.radio("Your gender", ["Female", "Male", "Other", "Prefer not to say"], index=None, horizontal=True)
     invested = st.radio("Have you ever invested money in stocks, mutual funds or a business?",
                         ["Yes", "No"], index=None, horizontal=True)
     if st.button("Submit my answers", type="primary", use_container_width=True):
-        if None in (voice_check, age_band, gender, invested):
+        if None in (voice_check, age_band, gender, invested, bbs_self, bbs_others, *cf.values()):
             st.warning("Please answer every question.")
         else:
             common = {
@@ -296,6 +321,13 @@ elif ss.step == "about":
                 "voice": ss.voice,
                 "cell_source": ss.cell_source,
                 "voice_check": voice_check,
+                "cf_business": cf["cf_business"],  # 'conjunction' = fallacy
+                "cf_founder": cf["cf_founder"],
+                "cf_business_first_option": ss.cf_order["cf_business"][0],
+                "cf_founder_first_option": ss.cf_order["cf_founder"][0],
+                "cf_last_business": ss.answers[2]["business"],
+                "bbs_self": bbs_self,
+                "bbs_others": bbs_others,  # blind spot = bbs_others - bbs_self
                 "participant_age_band": age_band,
                 "participant_gender": gender,
                 "invested_before": invested,
