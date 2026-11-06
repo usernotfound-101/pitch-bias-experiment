@@ -21,14 +21,13 @@ Written **before any data come in**; changes after data arrive go under "Deviati
 3. Attention / manipulation check (once, at the end): "The founders' voices were all female / all male / some of each / not sure".
 4. Participant: age band, gender, ever invested (yes/no).
 5. **Conjunction fallacy** (lecture "Conjunction Fallacy"), 2 items about the last pitch seen, each a single event vs that event plus another (options shuffled): business still running in 3 years (+ expanded to another state); founder steps back within 5 years (+ to focus on family). Choosing the conjunction = fallacy. The founder item carries a gender stereotype, so its fallacy rate may differ by founder voice.
-6. **Bias blind spot** (lecture "Perceptions and Bias in DM"): influence of the founders' voices on YOUR decisions and on OTHER participants' decisions, 1-5 each. Blind spot = others - self.
 
 ## Planned models
 Data: one row per participant x pitch (3 rows each). Standard errors clustered by participant.
 - Investment: `invest ~ female_voice * C(founder_age) + C(business) + C(position)` (OLS). Main term: `female_voice`.
 - Question focus: same right-hand side, logit on `picked_prevention`; report average marginal effects. This links the side study to the main study's H1 (more prevention questions for female founders).
 - Exploratory: `female_voice x participant_gender`; `female_voice x invested_before`.
-- Exploratory (lecture items): fallacy rate per item by `female_voice` (logit; key test: founder item, female vs male voice); blind spot (others - self) compared with zero (one-sample test) and by `female_voice`; whether participants with a larger blind spot show a larger voice gap in investment.
+- Exploratory (lecture items): fallacy rate per item by `female_voice` (logit; key test: founder item, female vs male voice).
 - Associations from a randomised assignment may be described as differences between assigned conditions, limited to this convenience sample.
 
 ## Exclusions (fixed now)
@@ -50,4 +49,4 @@ Proposal: a short report section if there are at least 128 usable participants; 
 
 ## Deviations
 - 2026-11-07: design changed from "1 of 18 videos per participant" to the 6-group, 3-pitch design above (Ayush). Typed questions, timed/untimed groups, BIS/BAS scale and open-text items dropped to keep each pitch under a minute.
-- 2026-11-07: added 4 closing items (2 conjunction fallacy, 2 bias blind spot), before data collection (Ayush).
+- 2026-11-07: added 2 closing conjunction-fallacy items, before data collection (Ayush); 2 bias blind spot items were added and then removed the same day, before any data.

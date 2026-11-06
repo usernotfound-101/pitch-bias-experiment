@@ -87,7 +87,7 @@ QUESTION_OPTIONS = {
 
 INVEST_CHOICES = list(range(0, 1001, 100))  # rupees, tapped not typed
 
-# Extra items (lectures "Conjunction Fallacy" and "Perceptions and Bias in DM"), asked once at the end.
+# Extra items (lecture "Conjunction Fallacy"), asked once at the end.
 # Conjunction fallacy: each item pairs a single event with that event AND another one. Choosing the
 # conjunction is the fallacy (it can never be more likely). Option order is shuffled per participant.
 CF_ITEMS = {
@@ -98,11 +98,8 @@ CF_ITEMS = {
                    "Within 5 years, the founder steps back from running the business.",
                    "Within 5 years, the founder steps back from running the business to focus on family."),
 }
-# Bias blind spot: rate the voice's influence on yourself and on other participants (1-5).
-INFLUENCE_SCALE = [1, 2, 3, 4, 5]
-INFLUENCE_LABELS = {1: "1 Not at all", 2: "2", 3: "3", 4: "4", 5: "5 A lot"}
 MIN_WATCH_SHARE = 0.9  # Continue works once this share of the video length has passed
-CONTACT = "STUDY_CONTACT_EMAIL"  # replace with the team's study email
+CONTACT = "ayush.moharana@students.iiit.ac.in"
 
 
 def video_code(business, voice, age):
@@ -302,16 +299,12 @@ elif ss.step == "about":
     for k, (q, single, conj) in CF_ITEMS.items():
         text = {"single": single, "conjunction": conj}
         cf[k] = st.radio(q, ss.cf_order[k], index=None, format_func=lambda o, t=text: t[o], key=k)
-    bbs_self = st.radio("How much did the founders' voices influence YOUR investment decisions?",
-                        INFLUENCE_SCALE, index=None, horizontal=True, format_func=INFLUENCE_LABELS.get)
-    bbs_others = st.radio("How much do you think the founders' voices influence the decisions of OTHER participants?",
-                          INFLUENCE_SCALE, index=None, horizontal=True, format_func=INFLUENCE_LABELS.get)
     age_band = st.radio("Your age", ["18-20", "21-24", "25-34", "35 or older"], index=None, horizontal=True)
     gender = st.radio("Your gender", ["Female", "Male", "Other", "Prefer not to say"], index=None, horizontal=True)
     invested = st.radio("Have you ever invested money in stocks, mutual funds or a business?",
                         ["Yes", "No"], index=None, horizontal=True)
     if st.button("Submit my answers", type="primary", use_container_width=True):
-        if None in (voice_check, age_band, gender, invested, bbs_self, bbs_others, *cf.values()):
+        if None in (voice_check, age_band, gender, invested, *cf.values()):
             st.warning("Please answer every question.")
         else:
             common = {
@@ -326,8 +319,6 @@ elif ss.step == "about":
                 "cf_business_first_option": ss.cf_order["cf_business"][0],
                 "cf_founder_first_option": ss.cf_order["cf_founder"][0],
                 "cf_last_business": ss.answers[2]["business"],
-                "bbs_self": bbs_self,
-                "bbs_others": bbs_others,  # blind spot = bbs_others - bbs_self
                 "participant_age_band": age_band,
                 "participant_gender": gender,
                 "invested_before": invested,
