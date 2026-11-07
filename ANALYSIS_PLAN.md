@@ -13,7 +13,7 @@ Written **before any data come in**; changes after data arrive go under "Deviati
 | O3 | C, 28 | A, 35 | B, 22 |
 
 - Within a business, the six videos share one script; only voice and stated age differ. Video lengths differ somewhat (e.g. 53-80 s for the recorded ones), so `watch_seconds` and video length are recorded.
-- Consent screen first (18+, voluntary, anonymous). Optional bonus-draw contact is stored separately and cannot be linked to answers.
+- Consent screen first (18+, voluntary, anonymous). No incentive or bonus draw; the end screen shows the study contact for questions.
 
 ## Measures (all taps, about 30 s per pitch)
 1. **Primary: investment**, ₹0-1,000 in steps of 100 ("How much of ₹1,000 would you invest in this founder?").
@@ -45,9 +45,9 @@ Proposal: a short report section if there are at least 128 usable participants; 
 ## Ethics and data handling
 - TODO (Ayush): ask the course instructor / IIIT whether this online anonymous study needs ethics approval; record the answer in board/tasks/T070_participant_experiment.md.
 - Raw responses stay in the Google Sheet and out of git. Only aggregated, anonymous tables may be committed.
-- The bonus draw is a random draw among those who leave a contact; it cannot depend on answers, because contacts are not linked to answers.
 
 ## Deviations
 - 2026-11-07: design changed from "1 of 18 videos per participant" to the 6-group, 3-pitch design above (Ayush). Typed questions, timed/untimed groups, BIS/BAS scale and open-text items dropped to keep each pitch under a minute.
 - 2026-11-07: added 2 closing conjunction-fallacy items, before data collection (Ayush); 2 bias blind spot items were added and then removed the same day, before any data.
 - 2026-11-07: a third option (the opposite event) added to each conjunction item, before any data (Ayush).
+- 2026-11-07: optional bonus draw removed before any data (no prize budget; Ayush). The end screen now shows the study contact for questions.

@@ -2,7 +2,7 @@ streamlit website for our project, looking at the code is akin to cheating :]
 
 ## Design
 Side study T070 (CLAUDE.md, "Side study"). One Streamlit app runs the whole flow:
-consent -> 3 pitch videos, each followed by 2 tap questions -> 4 short closing questions -> save -> debrief and optional bonus draw.
+consent -> 3 pitch videos, each followed by 2 tap questions -> 4 short closing questions -> save -> debrief with the contact for questions.
 
 - 6 groups = 3 orders (O1-O3) x founder voice (F or M, the same for all three pitches), assigned at random.
 - Each order shows businesses A, B and C once; across the orders every business appears once at each age (22, 28, 35).
@@ -19,7 +19,7 @@ YouTube titles must show only the neutral code ("Pitch A4"): the embedded player
 3. In Streamlit Cloud: app settings > Secrets, add `SHEET_URL = "https://script.google.com/macros/s/.../exec"`.
    Locally: put the same line in `.streamlit/secrets.toml` (gitignored).
 Without `SHEET_URL` the app is in test mode: nothing is saved and the answers are shown on screen.
-The Sheet gets `responses` (one row per participant per pitch), `raw` (backup) and `bonus` (contacts, not linkable to answers).
+The Sheet gets `responses` (one row per participant per pitch), `raw` (backup). (The `bonus` tab in Code.gs is no longer used: the bonus draw was removed.)
 
 ## Run locally
 `pip install -r requirements.txt && streamlit run app.py` (from this folder). Add `?cell=O2-F` to the URL to force a group when piloting.

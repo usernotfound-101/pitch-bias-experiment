@@ -207,8 +207,6 @@ if ss.step == "consent":
             <strong>Your rights</strong><br>
             • Taking part is voluntary. You can stop at any time by closing the page.<br>
             • Your answers are anonymous and stored under a random code. We do not ask for your name.<br>
-            • At the end you may enter a bonus draw by leaving an email or phone number. This is optional,
-              stored separately, and cannot be linked to your answers.<br>
             • Answers are used only for this course project and reported only as group totals.<br>
             • You must be 18 or older to take part.<br><br>
             Questions? Contact: {CONTACT}
@@ -360,12 +358,13 @@ elif ss.step == "done":
         """,
         unsafe_allow_html=True,
     )
-    if not ss.get("bonus_done"):
-        st.markdown("**Enter the bonus draw (optional).** Leave an email or phone number. It is stored "
-                    "separately from your answers and used only to contact the winner.")
-        contact = st.text_input("Email or phone", max_chars=200)
-        if st.button("Enter the draw") and contact.strip():
-            ok = TEST_MODE or post_json({"type": "bonus", "contact": contact.strip(),
-                                         "at": datetime.now(timezone.utc).isoformat()})
-            ss.bonus_done = True
-            st.success("You are in the draw." if ok else "Sorry, that did not go through. Please email us instead.")
+    st.markdown(
+        f"""
+        <div class="box">
+            <strong>Questions or concerns?</strong><br>
+            If you have any questions about this study, or want to know more about it, contact
+            {CONTACT}. You can now close this page.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
