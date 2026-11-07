@@ -1,6 +1,7 @@
 """Pitch evaluation study (side study T070): the whole participant flow in one Streamlit app.
 
-Flow: consent -> intro -> 3 x (watch pitch video -> 2 tap questions) -> short ending -> save -> debrief.
+Flow: consent -> intro -> 3 x (watch pitch video -> invest yes/no, 2 conjunction items,
+optional question pick) -> short ending -> save -> debrief.
 
 Design: 6 groups = 3 orders x founder voice (F or M, the same for all three pitches).
 Each order shows the three businesses A, B and C once, and across the three orders every
@@ -85,18 +86,24 @@ QUESTION_OPTIONS = {
     ],
 }
 
-INVEST_CHOICES = list(range(0, 1001, 100))  # rupees, tapped not typed
+# Investment decision. The founders' asks are in lakhs, so no rupee amount: a Shark Tank style choice.
+# Stored code -> text shown (always in this order: it is an ordered scale).
+INVEST_OPTIONS = {
+    "yes": "Yes",
+    "yes_lower": "Yes, but at a lower valuation than the founder asked for",
+    "no": "No",
+}
 
-# Extra items (lecture "Conjunction Fallacy"), asked once at the end.
+# Extra items (lecture "Conjunction Fallacy"), asked after every pitch, about that pitch.
 # Conjunction fallacy: each item offers a single event, that event AND another one, and the opposite
 # of the single event. Choosing the conjunction is the fallacy (it can never be more likely than the
-# single event). Option order is shuffled per participant.
+# single event). Option order is shuffled per participant and pitch.
 CF_ITEMS = {
-    "cf_business": ("Think about the last business you saw. Which is more likely?",
+    "cf_business": ("Think about this business. Which is more likely?",
                     "It is still running in 3 years.",
                     "It is still running in 3 years and has expanded to another state.",
                     "It is no longer running in 3 years."),
-    "cf_founder": ("Think about the founder of the last pitch. Which is more likely?",
+    "cf_founder": ("Think about this founder. Which is more likely?",
                    "Within 5 years, the founder steps back from running the business.",
                    "Within 5 years, the founder steps back from running the business to focus on family.",
                    "Within 5 years, the founder is still running the business."),
@@ -203,7 +210,7 @@ if ss.step == "consent":
             <strong>About this study</strong><br>
             This is a student research project for a Neuroeconomics course at IIIT Hyderabad.
             You will watch three short startup pitches (about one minute each). After each one
-            you answer two quick questions by tapping. It takes about 6 minutes.<br><br>
+            you answer a few quick questions by tapping. It takes about 7 minutes.<br><br>
             <strong>Your rights</strong><br>
             • Taking part is voluntary. You can stop at any time by closing the page.<br>
             • Your answers are anonymous and stored under a random code. We do not ask for your name.<br>
@@ -229,8 +236,9 @@ elif ss.step == "intro":
         <div class="box">
             Imagine you are an investor. For each of the three businesses:<br>
             1. Watch the founder's pitch once, all the way through, with the sound on.<br>
-            2. Decide how much of ₹1,000 you would invest.<br>
-            3. Pick the question you would most want to ask the founder.<br><br>
+            2. Decide whether you would invest in the business.<br>
+            3. Answer two quick questions about the business and its founder.<br>
+            4. If you like, pick the question you would most want to ask the founder (optional).<br><br>
             Please use headphones or turn your sound up.
         </div>
         """,
@@ -264,18 +272,25 @@ elif ss.step.startswith("questions_"):
     if opt_key not in ss:  # shuffle once, keep the order on reruns
         ss[opt_key] = random.sample(QUESTION_OPTIONS[business], k=4)
     options = ss[opt_key]
+    cf_key = f"cf_order_{i}"
+    if cf_key not in ss:  # shuffle conjunction options once per pitch, keep the order on reruns
+        ss[cf_key] = {k: random.sample(["single", "conjunction", "other"], k=3) for k in CF_ITEMS}
     st.subheader(f"Pitch {i + 1} of 3: your decision")
     invest = st.radio(
-        "You have ₹1,000 for this pitch. How much would you invest in this founder? (Anything you don't invest, you keep.)",
-        INVEST_CHOICES, index=None, horizontal=True, format_func=lambda x: f"₹{x}", key=f"invest_{i}",
+        "Would you invest in this business?",
+        list(INVEST_OPTIONS), index=None, format_func=INVEST_OPTIONS.get, key=f"invest_{i}",
     )
+    cf = {}
+    for k, (q, single, conj, other) in CF_ITEMS.items():
+        text = {"single": single, "conjunction": conj, "other": other}
+        cf[k] = st.radio(q, ss[cf_key][k], index=None, format_func=lambda o, t=text: t[o], key=f"{k}_{i}")
     picked = st.radio(
-        "Which question would you most want to ask this founder?",
+        "Optional: which question would you most want to ask this founder? You can skip this one.",
         range(4), index=None, format_func=lambda k: options[k][1], key=f"pick_{i}",
     )
     if st.button("Continue", type="primary", use_container_width=True):
-        if invest is None or picked is None:
-            st.warning("Please answer both questions.")
+        if None in (invest, *cf.values()):
+            st.warning("Please answer the first three questions. Only the last one is optional.")
         else:
             ss.answers.append({
                 "pitch_position": i + 1,
@@ -283,9 +298,13 @@ elif ss.step.startswith("questions_"):
                 "founder_age": age,
                 "video_code": code,
                 "watch_seconds": ss[f"watch_seconds_{i}"],
-                "invest_rupees": invest,
-                "question_focus": options[picked][0],
-                "question_text": options[picked][1],
+                "invest_decision": invest,  # yes / yes_lower / no
+                "cf_business": cf["cf_business"],  # single / conjunction / other; 'conjunction' = fallacy
+                "cf_founder": cf["cf_founder"],
+                "cf_business_order": "|".join(ss[cf_key]["cf_business"]),  # options as shown, top to bottom
+                "cf_founder_order": "|".join(ss[cf_key]["cf_founder"]),
+                "question_focus": options[picked][0] if picked is not None else "skipped",
+                "question_text": options[picked][1] if picked is not None else "",
                 "options_shown": " | ".join(f"{f}:{t}" for f, t in options),
             })
             go(f"video_{i + 1}" if i < 2 else "about")
@@ -294,18 +313,12 @@ elif ss.step == "about":
     st.subheader("Last few questions")
     voice_check = st.radio("In the three pitches, the founders' voices were…",
                            ["All female", "All male", "Some female, some male", "Not sure"], index=None)
-    if "cf_order" not in ss:  # shuffle option order once per participant
-        ss.cf_order = {k: random.sample(["single", "conjunction", "other"], k=3) for k in CF_ITEMS}
-    cf = {}
-    for k, (q, single, conj, other) in CF_ITEMS.items():
-        text = {"single": single, "conjunction": conj, "other": other}
-        cf[k] = st.radio(q, ss.cf_order[k], index=None, format_func=lambda o, t=text: t[o], key=k)
     age_band = st.radio("Your age", ["18-20", "21-24", "25-34", "35 or older"], index=None, horizontal=True)
     gender = st.radio("Your gender", ["Female", "Male", "Other", "Prefer not to say"], index=None, horizontal=True)
     invested = st.radio("Have you ever invested money in stocks, mutual funds or a business?",
                         ["Yes", "No"], index=None, horizontal=True)
     if st.button("Submit my answers", type="primary", use_container_width=True):
-        if None in (voice_check, age_band, gender, invested, *cf.values()):
+        if None in (voice_check, age_band, gender, invested):
             st.warning("Please answer every question.")
         else:
             common = {
@@ -315,11 +328,6 @@ elif ss.step == "about":
                 "voice": ss.voice,
                 "cell_source": ss.cell_source,
                 "voice_check": voice_check,
-                "cf_business": cf["cf_business"],  # single / conjunction / other; 'conjunction' = fallacy
-                "cf_founder": cf["cf_founder"],
-                "cf_business_order": "|".join(ss.cf_order["cf_business"]),  # options as shown, top to bottom
-                "cf_founder_order": "|".join(ss.cf_order["cf_founder"]),
-                "cf_last_business": ss.answers[2]["business"],
                 "participant_age_band": age_band,
                 "participant_gender": gender,
                 "invested_before": invested,
@@ -350,8 +358,9 @@ elif ss.step == "done":
         """
         <div class="box">
             <strong>What this study was about</strong><br>
-            We are testing whether a founder's voice (male or female) and stated age change how much
-            people invest and which questions they would ask. The three pitches were adapted from real
+            We are testing whether a founder's voice (male or female) and stated age change whether
+            people would invest, how they judge the business and founder, and which questions they
+            would ask. The three pitches were adapted from real
             Shark Tank India startups, and each was recorded with different voices and ages.
             Please don't discuss the study with anyone who might still take part.
         </div>

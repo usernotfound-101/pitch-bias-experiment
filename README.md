@@ -2,11 +2,11 @@ streamlit website for our project, looking at the code is akin to cheating :]
 
 ## Design
 Side study T070 (CLAUDE.md, "Side study"). One Streamlit app runs the whole flow:
-consent -> 3 pitch videos, each followed by 2 tap questions -> 4 short closing questions -> save -> debrief with the contact for questions.
+consent -> 3 pitch videos, each followed by 4 tap questions (the last one optional) -> 4 short closing questions -> save -> debrief with the contact for questions.
 
 - 6 groups = 3 orders (O1-O3) x founder voice (F or M, the same for all three pitches), assigned at random.
 - Each order shows businesses A, B and C once; across the orders every business appears once at each age (22, 28, 35).
-- Per pitch: invest ₹0-1,000 (tap, steps of 100) and pick the question you would most want to ask (2 promotion and 2 prevention options, shuffled).
+- Per pitch: would you invest? (Yes / Yes, but at a lower valuation than asked / No; the founders' asks are in lakhs, so no rupee amount), the 2 conjunction-fallacy items about that business and founder (options shuffled), and, optionally, the question you would most want to ask (2 promotion and 2 prevention options, shuffled; `question_focus = skipped` if left blank).
 - A group is only assigned when all three of its videos have links, so missing videos never reach participants.
 
 ## Videos
