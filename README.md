@@ -2,11 +2,13 @@ streamlit website for our project, looking at the code is akin to cheating :]
 
 ## Design
 Side study T070 (CLAUDE.md, "Side study"). One Streamlit app runs the whole flow:
-consent -> 3 pitch videos, each followed by 4 tap questions (the last one optional) -> 4 short closing questions -> save -> debrief with the contact for questions.
+consent -> 3 x (pitch video -> invest + optional question pick -> 2 conjunction items on their own screen) -> 4 short closing questions (voice check, ever invested, age group, gender) -> save -> debrief with the contact for questions.
 
 - 6 groups = 3 orders (O1-O3) x founder voice (F or M, the same for all three pitches), assigned at random.
 - Each order shows businesses A, B and C once; across the orders every business appears once at each age (22, 28, 35).
-- Per pitch: would you invest? (Yes / Yes, but at a lower valuation than asked / No; the founders' asks are in lakhs, so no rupee amount), the 2 conjunction-fallacy items about that business and founder (options shuffled), and, optionally, the question you would most want to ask (2 promotion and 2 prevention options, shuffled; `question_focus = skipped` if left blank).
+- Per pitch, screen 1: would you invest? (Yes / Yes, but at a lower valuation than asked / No; the founders' asks are in lakhs, so no rupee amount) and, optionally, the question you would most want to ask (2 promotion and 2 prevention options, shuffled; `question_focus = skipped` if left blank).
+- Per pitch, screen 2: the 2 conjunction-fallacy items about that business and founder (options shuffled). They come after the question pick so the founder item ("steps back ... to focus on family") cannot prime it.
+- End: age group (Under 18 / 18-24 / 25-34 / 35-44 / 45-54 / 55 or older / Prefer not to say) and gender (Woman / Man / Non-binary / Prefer to self-describe, with optional short text / Prefer not to say), both required, saved on each of the participant's rows. "Under 18" ends the study politely and saves nothing (consent is 18+).
 - A group is only assigned when all three of its videos have links, so missing videos never reach participants.
 
 ## Videos

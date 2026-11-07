@@ -1,7 +1,7 @@
 """Pitch evaluation study (side study T070): the whole participant flow in one Streamlit app.
 
-Flow: consent -> intro -> 3 x (watch pitch video -> invest yes/no, 2 conjunction items,
-optional question pick) -> short ending -> save -> debrief.
+Flow: consent -> intro -> 3 x (watch pitch video -> invest yes/no + optional question pick
+-> 2 conjunction items on their own screen) -> short ending (incl. age group, gender) -> save -> debrief.
 
 Design: 6 groups = 3 orders x founder voice (F or M, the same for all three pitches).
 Each order shows the three businesses A, B and C once, and across the three orders every
@@ -108,6 +108,11 @@ CF_ITEMS = {
                    "Within 5 years, the founder steps back from running the business to focus on family.",
                    "Within 5 years, the founder is still running the business."),
 }
+
+# Participant questions at the end (anonymous; each has an opt-out). Under 18 ends the study unsaved.
+AGE_GROUPS = ["Under 18", "18-24", "25-34", "35-44", "45-54", "55 or older", "Prefer not to say"]
+GENDERS = ["Woman", "Man", "Non-binary", "Prefer to self-describe", "Prefer not to say"]
+
 MIN_WATCH_SHARE = 0.9  # Continue works once this share of the video length has passed
 CONTACT = "ayush.moharana@students.iiit.ac.in"
 
@@ -210,10 +215,12 @@ if ss.step == "consent":
             <strong>About this study</strong><br>
             This is a student research project for a Neuroeconomics course at IIIT Hyderabad.
             You will watch three short startup pitches (about one minute each). After each one
-            you answer a few quick questions by tapping. It takes about 7 minutes.<br><br>
+            you answer a few quick questions by tapping. At the end we ask your age group and
+            gender. It takes about 7 minutes.<br><br>
             <strong>Your rights</strong><br>
             • Taking part is voluntary. You can stop at any time by closing the page.<br>
-            • Your answers are anonymous and stored under a random code. We do not ask for your name.<br>
+            • Your answers are anonymous and stored under a random code. We never ask for your name,
+            email or any ID. Age group and gender each have a "Prefer not to say" option.<br>
             • Answers are used only for this course project and reported only as group totals.<br>
             • You must be 18 or older to take part.<br><br>
             Questions? Contact: {CONTACT}
@@ -237,8 +244,8 @@ elif ss.step == "intro":
             Imagine you are an investor. For each of the three businesses:<br>
             1. Watch the founder's pitch once, all the way through, with the sound on.<br>
             2. Decide whether you would invest in the business.<br>
-            3. Answer two quick questions about the business and its founder.<br>
-            4. If you like, pick the question you would most want to ask the founder (optional).<br><br>
+            3. If you like, pick the question you would most want to ask the founder (optional).<br>
+            4. Answer two quick questions about the business and its founder.<br><br>
             Please use headphones or turn your sound up.
         </div>
         """,
@@ -272,40 +279,55 @@ elif ss.step.startswith("questions_"):
     if opt_key not in ss:  # shuffle once, keep the order on reruns
         ss[opt_key] = random.sample(QUESTION_OPTIONS[business], k=4)
     options = ss[opt_key]
-    cf_key = f"cf_order_{i}"
-    if cf_key not in ss:  # shuffle conjunction options once per pitch, keep the order on reruns
-        ss[cf_key] = {k: random.sample(["single", "conjunction", "other"], k=3) for k in CF_ITEMS}
     st.subheader(f"Pitch {i + 1} of 3: your decision")
     invest = st.radio(
         "Would you invest in this business?",
         list(INVEST_OPTIONS), index=None, format_func=INVEST_OPTIONS.get, key=f"invest_{i}",
     )
-    cf = {}
-    for k, (q, single, conj, other) in CF_ITEMS.items():
-        text = {"single": single, "conjunction": conj, "other": other}
-        cf[k] = st.radio(q, ss[cf_key][k], index=None, format_func=lambda o, t=text: t[o], key=f"{k}_{i}")
     picked = st.radio(
         "Optional: which question would you most want to ask this founder? You can skip this one.",
         range(4), index=None, format_func=lambda k: options[k][1], key=f"pick_{i}",
     )
     if st.button("Continue", type="primary", use_container_width=True):
-        if None in (invest, *cf.values()):
-            st.warning("Please answer the first three questions. Only the last one is optional.")
+        if invest is None:
+            st.warning("Please answer whether you would invest. Only the second question is optional.")
         else:
-            ss.answers.append({
+            # Kept until the conjunction screen is done (widget values vanish once the screen changes).
+            ss[f"pitch_answer_{i}"] = {
                 "pitch_position": i + 1,
                 "business": business,
                 "founder_age": age,
                 "video_code": code,
                 "watch_seconds": ss[f"watch_seconds_{i}"],
                 "invest_decision": invest,  # yes / yes_lower / no
+                "question_focus": options[picked][0] if picked is not None else "skipped",
+                "question_text": options[picked][1] if picked is not None else "",
+                "options_shown": " | ".join(f"{f}:{t}" for f, t in options),
+            }
+            go(f"cf_{i}")
+
+elif ss.step.startswith("cf_"):
+    # Conjunction items on their own screen, AFTER the question pick, so the founder item
+    # ("steps back ... to focus on family") cannot prime which question people pick.
+    i = int(ss.step.split("_")[1])
+    cf_key = f"cf_order_{i}"
+    if cf_key not in ss:  # shuffle conjunction options once per pitch, keep the order on reruns
+        ss[cf_key] = {k: random.sample(["single", "conjunction", "other"], k=3) for k in CF_ITEMS}
+    st.subheader(f"Pitch {i + 1} of 3: two quick questions")
+    cf = {}
+    for k, (q, single, conj, other) in CF_ITEMS.items():
+        text = {"single": single, "conjunction": conj, "other": other}
+        cf[k] = st.radio(q, ss[cf_key][k], index=None, format_func=lambda o, t=text: t[o], key=f"{k}_{i}")
+    if st.button("Continue", type="primary", use_container_width=True):
+        if None in cf.values():
+            st.warning("Please answer both questions.")
+        else:
+            ss.answers.append({
+                **ss[f"pitch_answer_{i}"],
                 "cf_business": cf["cf_business"],  # single / conjunction / other; 'conjunction' = fallacy
                 "cf_founder": cf["cf_founder"],
                 "cf_business_order": "|".join(ss[cf_key]["cf_business"]),  # options as shown, top to bottom
                 "cf_founder_order": "|".join(ss[cf_key]["cf_founder"]),
-                "question_focus": options[picked][0] if picked is not None else "skipped",
-                "question_text": options[picked][1] if picked is not None else "",
-                "options_shown": " | ".join(f"{f}:{t}" for f, t in options),
             })
             go(f"video_{i + 1}" if i < 2 else "about")
 
@@ -313,13 +335,19 @@ elif ss.step == "about":
     st.subheader("Last few questions")
     voice_check = st.radio("In the three pitches, the founders' voices were…",
                            ["All female", "All male", "Some female, some male", "Not sure"], index=None)
-    age_band = st.radio("Your age", ["18-20", "21-24", "25-34", "35 or older"], index=None, horizontal=True)
-    gender = st.radio("Your gender", ["Female", "Male", "Other", "Prefer not to say"], index=None, horizontal=True)
     invested = st.radio("Have you ever invested money in stocks, mutual funds or a business?",
                         ["Yes", "No"], index=None, horizontal=True)
+    age_group = st.radio("Your age group", AGE_GROUPS, index=None)
+    gender = st.radio("Your gender", GENDERS, index=None)
+    gender_self = ""
+    if gender == "Prefer to self-describe":
+        gender_self = st.text_input("Optional: your gender in your own words", max_chars=40, key="gender_self")
     if st.button("Submit my answers", type="primary", use_container_width=True):
-        if None in (voice_check, age_band, gender, invested):
-            st.warning("Please answer every question.")
+        if None in (voice_check, invested, age_group, gender):
+            st.warning("Please answer every question (each has an option you can choose instead of answering).")
+        elif age_group == "Under 18":
+            ss.answers = []  # consent was for 18+ only: nothing is saved
+            go("under18")
         else:
             common = {
                 "participant_id": ss.pid,
@@ -328,8 +356,9 @@ elif ss.step == "about":
                 "voice": ss.voice,
                 "cell_source": ss.cell_source,
                 "voice_check": voice_check,
-                "participant_age_band": age_band,
+                "participant_age_group": age_group,
                 "participant_gender": gender,
+                "participant_gender_self": gender_self.strip() if gender == "Prefer to self-describe" else "",
                 "invested_before": invested,
                 "started_at": ss.started_at,
                 "submitted_at": datetime.now(timezone.utc).isoformat(),
@@ -345,6 +374,10 @@ elif ss.step == "about":
                 "raw": {"pid": ss.pid, "rows": rows},
             })
             go("done")
+
+elif ss.step == "under18":
+    st.info("Thank you for your interest. This study is only for people aged 18 or older, "
+            "so your answers have not been saved. You can close this page.")
 
 elif ss.step == "done":
     if not ss.saved:
