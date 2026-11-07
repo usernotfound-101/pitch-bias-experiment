@@ -88,6 +88,8 @@ QUESTION_OPTIONS = {
 
 # Investment decision. The founders' asks are in lakhs, so no rupee amount: a Shark Tank style choice.
 # Stored code -> text shown (always in this order: it is an ordered scale).
+FOUNDER_GENDER = {"F": "Female", "M": "Male"}  # shown in the founder card above each video
+
 INVEST_OPTIONS = {
     "yes": "Yes",
     "yes_lower": "Yes, but at a lower valuation than the founder asked for",
@@ -208,6 +210,10 @@ def go(step):
 # ---------------------------------------------------------------------------
 st.title("Startup Pitch Study")
 
+# Reloading starts a new session: answers so far are lost and a new group may be drawn.
+if ss.step not in ("consent", "declined", "done", "under18"):
+    st.warning("Please don't reload or refresh this page, and don't press Back. Your answers so far would be lost.")
+
 if ss.step == "consent":
     st.markdown(
         f"""
@@ -246,7 +252,9 @@ elif ss.step == "intro":
             2. Decide whether you would invest in the business.<br>
             3. If you like, pick the question you would most want to ask the founder (optional).<br>
             4. Answer two quick questions about the business and its founder.<br><br>
-            Please use headphones or turn your sound up.
+            Please use headphones or turn your sound up.<br><br>
+            <strong>Please don't reload or refresh the page</strong> until you reach the end:
+            your answers would be lost.
         </div>
         """,
         unsafe_allow_html=True,
@@ -262,6 +270,10 @@ elif ss.step.startswith("video_"):
     if shown_key not in ss:
         ss[shown_key] = time.time()
     st.subheader(f"Pitch {i + 1} of 3")
+    # Founder card (asked for by Abhiraj, 2026-11-07): states the founder's gender and age above
+    # the video, matching the voice and the age said in the pitch.
+    st.markdown(f'<div class="box"><strong>Founder:</strong> {FOUNDER_GENDER[ss.voice]}, {age} years old</div>',
+                unsafe_allow_html=True)
     st.write("Watch the whole pitch once. The questions open after it.")
     st.video(url)
     if st.button("I have watched the whole pitch", type="primary", use_container_width=True):
